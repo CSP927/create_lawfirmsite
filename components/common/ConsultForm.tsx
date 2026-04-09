@@ -23,7 +23,7 @@ type FormData = {
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
 const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbyn6zj4T6BRkoFAs9GcP8RDohOgkgVPohBxg1WYdpqFKHexKswcb5sZlGx-4R0aP4E2/exec';
+  'https://script.google.com/macros/s/AKfycby3fjxciwWY_lnWMD3BoKDvzgijonplQMoZyj_KOi7Z8AvHjKZPdUZznhiTFafsz2Cw/exec';
 
 export default function ConsultForm() {
   const [form, setForm] = useState<FormData>({

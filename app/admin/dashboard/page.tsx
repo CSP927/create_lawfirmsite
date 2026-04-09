@@ -14,7 +14,7 @@ type Inquiry = {
 
 const SHEET_ID = '1kkWmoibcRf2zj_YKJ5l3PamURNIqD-RvOikc_aquJWk';
 const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbyn6zj4T6BRkoFAs9GcP8RDohOgkgVPohBxg1WYdpqFKHexKswcb5sZlGx-4R0aP4E2/exec';
+  'https://script.google.com/macros/s/AKfycby3fjxciwWY_lnWMD3BoKDvzgijonplQMoZyj_KOi7Z8AvHjKZPdUZznhiTFafsz2Cw/exec';
 
 export default function AdminDashboard() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
