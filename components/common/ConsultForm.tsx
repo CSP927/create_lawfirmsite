@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { SITE } from '@/lib/constants';
 
-// 컴포넌트 모듈 최상단 정의 (모바일 키보드 끊김 방지)
 const INTEREST_OPTIONS = [
   'AI·SEO 풀패키지',
   '홈페이지 신규 제작',
@@ -22,6 +21,9 @@ type FormData = {
 };
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
+
+const APPS_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbyn6zj4T6BRkoFAs9GcP8RDohOgkgVPohBxg1WYdpqFKHexKswcb5sZlGx-4R0aP4E2/exec';
 
 export default function ConsultForm() {
   const [form, setForm] = useState<FormData>({
@@ -47,12 +49,17 @@ export default function ConsultForm() {
     }
     setState('loading');
 
-    // TODO: 실제 전송 로직 (Formspree, Netlify Forms, API Route 등)
-    // 아래는 시뮬레이션
     try {
-      await new Promise((r) => setTimeout(r, 800));
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
       setState('success');
-      // GA4 전환 이벤트
+      setForm({ name: '', phone: '', office: '', interest: '', message: '' });
+
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'consult_submit', {
           event_category: 'conversion',
