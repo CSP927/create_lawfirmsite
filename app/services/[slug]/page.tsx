@@ -5,7 +5,7 @@ import { getFaqsByCategory } from '@/data/faqs';
 
 type Props = { params: Promise<{ slug: string }> };
 
-const SERVICE_DATA: Record
+const SERVICE_DATA: Record<
   string,
   {
     icon: string;
@@ -160,12 +160,16 @@ export default async function ServiceDetailPage({ params }: Props) {
         <Link href="/services" className="text-sm text-blue-600 hover:underline mb-6 inline-block">
           ← 서비스 목록
         </Link>
+
+        {/* 헤더 */}
         <div className="mb-10">
           <span className="text-4xl mb-4 block">{s.icon}</span>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{s.title}</h1>
           <p className="text-blue-600 font-medium mb-4">{s.subtitle}</p>
           <p className="text-gray-600 leading-relaxed">{s.desc}</p>
         </div>
+
+        {/* 가격·기간 */}
         <div className="grid grid-cols-2 gap-4 mb-10">
           <div className="bg-blue-50 rounded-xl p-5 text-center">
             <p className="text-xs text-gray-500 mb-1">시작 가격</p>
@@ -177,6 +181,8 @@ export default async function ServiceDetailPage({ params }: Props) {
             <p className="text-2xl font-bold text-gray-900">{s.period}</p>
           </div>
         </div>
+
+        {/* 포함 항목 */}
         <div className="mb-10">
           <h2 className="text-lg font-bold text-gray-900 mb-4">포함 항목</h2>
           <ul className="space-y-3">
@@ -188,6 +194,8 @@ export default async function ServiceDetailPage({ params }: Props) {
             ))}
           </ul>
         </div>
+
+        {/* 관련 FAQ */}
         {relatedFaqs.length > 0 && (
           <div className="mb-10">
             <h2 className="text-lg font-bold text-gray-900 mb-4">관련 질문</h2>
@@ -211,6 +219,8 @@ export default async function ServiceDetailPage({ params }: Props) {
             </div>
           </div>
         )}
+
+        {/* CTA */}
         <div className="bg-blue-700 rounded-2xl p-8 text-center text-white">
           <p className="text-lg font-bold mb-2">{s.title} 문의하기</p>
           <p className="text-blue-200 text-sm mb-6">초기 상담 무료 · 1영업일 내 답변</p>
@@ -221,7 +231,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             >
               무료 상담 신청
             </Link>
-            
+            <a
               href="tel:01058864776"
               className="border-2 border-white text-white font-bold px-8 py-3 rounded-lg hover:bg-white/10 transition-colors text-sm"
             >
