@@ -12,10 +12,6 @@ type Inquiry = {
   message: string;
 };
 
-const SHEET_ID = '1kkWmoibcRf2zj_YKJ5l3PamURNIqD-RvOikc_aquJWk';
-const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycby3fjxciwWY_lnWMD3BoKDvzgijonplQMoZyj_KOi7Z8AvHjKZPdUZznhiTFafsz2Cw/exec';
-
 export default function AdminDashboard() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +28,10 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=get`);
+      const res = await fetch('/api/consult');
       const data = await res.json();
-      setInquiries(data);
+      setInquiries(Array.isArray(data) ? data : []);
     } catch {
-      // 데이터 없으면 빈 배열
       setInquiries([]);
     } finally {
       setLoading(false);
@@ -50,7 +45,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-gray-900">상담 문의 관리</h1>
@@ -64,7 +58,6 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* 테이블 */}
       <div className="p-6">
         {loading ? (
           <div className="text-center py-20 text-gray-400">불러오는 중...</div>

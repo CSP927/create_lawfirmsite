@@ -22,9 +22,6 @@ type FormData = {
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
-const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycby3fjxciwWY_lnWMD3BoKDvzgijonplQMoZyj_KOi7Z8AvHjKZPdUZznhiTFafsz2Cw/exec';
-
 export default function ConsultForm() {
   const [form, setForm] = useState<FormData>({
     name: '',
@@ -50,12 +47,13 @@ export default function ConsultForm() {
     setState('loading');
 
     try {
-      await fetch(APPS_SCRIPT_URL, {
+      const res = await fetch('/api/consult', {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
+
+      if (!res.ok) throw new Error('failed');
 
       setState('success');
       setForm({ name: '', phone: '', office: '', interest: '', message: '' });
