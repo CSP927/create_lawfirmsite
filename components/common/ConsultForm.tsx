@@ -22,7 +22,7 @@ type FormData = {
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
-// 전화번호 자동 하이픈 함수
+// ✅ 전화번호 자동 하이픈 + 숫자만 처리
 function formatPhone(value: string) {
   const numbers = value.replace(/\D/g, '');
 
@@ -48,7 +48,7 @@ export default function ConsultForm() {
   ) => {
     const { name, value } = e.target;
 
-    // 🔥 phone만 따로 처리
+    // ✅ 전화번호만 별도 처리
     if (name === 'phone') {
       const formatted = formatPhone(value);
       setForm((prev) => ({ ...prev, phone: formatted }));
@@ -59,7 +59,6 @@ export default function ConsultForm() {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    // 숫자만 추출
     const cleanPhone = form.phone.replace(/\D/g, '');
 
     if (!form.name || !cleanPhone) {
@@ -67,7 +66,7 @@ export default function ConsultForm() {
       return;
     }
 
-    // 길이 검증 (한국 휴대폰 기준)
+    // ✅ 전화번호 형식 검증 (10~11자리)
     if (!/^\d{10,11}$/.test(cleanPhone)) {
       alert('올바른 전화번호를 입력해주세요.');
       return;
@@ -81,7 +80,7 @@ export default function ConsultForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          phone: cleanPhone, // 서버에는 숫자만 보냄
+          phone: cleanPhone, // ✅ 숫자만 서버로 전송
         }),
       });
 
@@ -130,7 +129,7 @@ export default function ConsultForm() {
             value={form.name}
             onChange={handleChange}
             placeholder="홍길동"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div>
@@ -143,19 +142,58 @@ export default function ConsultForm() {
             value={form.phone}
             onChange={handleChange}
             placeholder="010-0000-0000"
-            inputMode="numeric"   // 📱 모바일 숫자 키패드
-            maxLength={13}        // 010-1234-5678 길이 제한
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            inputMode="numeric"   // ✅ 모바일 숫자 키패드
+            maxLength={13}        // ✅ 010-1234-5678 제한
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      {/* 나머지 코드는 그대로 유지 */}
-      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">사무소명</label>
+        <input
+          type="text"
+          name="office"
+          value={form.office}
+          onChange={handleChange}
+          placeholder="OO법률사무소 / OO법무법인"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">관심 서비스</label>
+        <select
+          name="interest"
+          value={form.interest}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+        >
+          <option value="">선택해주세요</option>
+          {INTEREST_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">문의 내용</label>
+        <textarea
+          name="message"
+          value={form.message}
+          onChange={handleChange}
+          placeholder="현재 사이트 URL, 제작 요청 사항, 예산 등을 자유롭게 적어주세요."
+          rows={4}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+        />
+      </div>
+
       <button
         onClick={handleSubmit}
         disabled={state === 'loading'}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 rounded-lg text-sm"
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 rounded-lg text-sm transition-colors"
       >
         {state === 'loading' ? '전송 중...' : '무료 상담 신청하기'}
       </button>
@@ -165,6 +203,10 @@ export default function ConsultForm() {
           전송 중 오류가 발생했습니다. 전화로 문의해 주세요: {SITE.phone}
         </p>
       )}
+
+      <p className="text-center text-xs text-gray-400">
+        입력하신 정보는 상담 목적으로만 사용됩니다.
+      </p>
     </div>
   );
 }
