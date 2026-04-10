@@ -6,12 +6,18 @@ const DOMAIN_BLOCKLIST = [
   'cloudflare', 'cdn', 'amazonaws', 'unpkg', 'jsdelivr', 'wp.com',
   'pstatic', 'daumcdn', 'kakaocdn', 'bootstrapcdn', 'fontawesome',
   'typekit', 'fonts.com', 'gravatar', 'wp-includes',
+  'gmpg.org', 'ogp.me', 'schema.org', 'w3.org', 'xmlsoap.org',
+  'microsoft', 'apple', 'icloud', 'akamai', 'fastly', 'vercel',
+  'netlify', 'github', 'bitbucket', 'gitlab', 'notion', 'slack',
+  'wix', 'squarespace', 'shopify', 'wordpress', 'drupal',
+  'doubleclick', 'adsense', 'adsbygoogle', 'analytics',
 ];
 
 async function fetchHtml(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(6000),
+      redirect: 'follow',
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
     });
     return res.ok ? await res.text() : '';
