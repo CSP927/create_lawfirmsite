@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PAGESPEED_API_KEY = 'AIzaSyA2hXiinruK-4zbqmiIE22vkqHNN9KN-Vw';
-
 const DOMAIN_BLOCKLIST = [
   'google', 'gstatic', 'googleapis', 'kakao', 'youtube', 'naver',
   'facebook', 'instagram', 'twitter', 'tistory', 'adobe', 'jquery',
   'cloudflare', 'cdn', 'amazonaws', 'unpkg', 'jsdelivr', 'wp.com',
+  'pstatic', 'daumcdn', 'kakaocdn', 'bootstrapcdn', 'fontawesome',
+  'typekit', 'fonts.com', 'gravatar', 'wp-includes',
 ];
 
 async function fetchHtml(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(6000),
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
     });
     return res.ok ? await res.text() : '';
   } catch {
@@ -30,18 +30,6 @@ async function checkUrl(url: string): Promise<boolean> {
     return res.ok;
   } catch {
     return false;
-  }
-}
-
-async function fetchPageSpeedSeo(url: string): Promise<number> {
-  try {
-    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=SEO&key=${PAGESPEED_API_KEY}`;
-    const res = await fetch(apiUrl, { signal: AbortSignal.timeout(15000) });
-    const data = await res.json();
-    const score = data?.lighthouseResult?.categories?.seo?.score;
-    return score != null ? Math.round(score * 100) : 0;
-  } catch {
-    return 0;
   }
 }
 
@@ -89,22 +77,43 @@ function checkSpecializedSite(html: string, domain: string): { pass: boolean; de
     : { pass: false, desc: '없음' };
 }
 
+// PageSpeed API 대신 HTML 직접 분석으로 SEO 점수 산출
+function calcSeoScore(html: string, hasLlms: boolean, hasJsonLd: boolean, hasFaq: boolean, hasSitemap: boolean, hasRobots: boolean): { score: number; desc: string } {
+  let score = 0;
+  const checks = [];
+
+  // title 태그
+  if (html.includes('<title>') && !html.includes('<title></title>')) { score += 15; checks.push('title'); }
+  // meta description
+  if (html.includes('name="description"') || html.includes("name='description'")) { score += 15; checks.push('description'); }
+  // canonical
+  if (html.includes('rel="canonical"') || html.includes("rel='canonical'")) { score += 10; checks.push('canonical'); }
+  // OG 태그
+  if (html.includes('og:title')) { score += 10; checks.push('OG'); }
+  // 구조화 데이터
+  if (hasJsonLd) { score += 15; }
+  // llms.txt
+  if (hasLlms) { score += 10; }
+  // sitemap
+  if (hasSitemap) { score += 10; }
+  // robots
+  if (hasRobots) { score += 5; }
+  // viewport (모바일 최적화)
+  if (html.includes('name="viewport"') || html.includes("name='viewport'")) { score += 10; checks.push('viewport'); }
+
+  return { score: Math.min(score, 100), desc: `SEO 분석 ${score}점` };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { url, withPageSpeed } = await req.json();
+    const { url } = await req.json();
     if (!url) return NextResponse.json({ error: 'URL이 필요합니다' }, { status: 400 });
 
     const baseUrl = url.startsWith('http') ? url.replace(/\/$/, '') : `https://${url}`.replace(/\/$/, '');
     const urlObj = new URL(baseUrl);
     const domain = urlObj.hostname;
 
-    if (withPageSpeed) {
-      // 2단계: PageSpeed만 반환
-      const seoScore = await fetchPageSpeedSeo(baseUrl);
-      return NextResponse.json({ seoScore });
-    }
-
-    // 1단계: PageSpeed 제외하고 빠르게 반환
+    // 모든 요청 병렬 처리
     const [html, llmsContent, sitemapContent, robotsExists] = await Promise.all([
       fetchHtml(baseUrl),
       fetch(`${urlObj.origin}/llms.txt`, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok ? r.text() : '').catch(() => ''),
@@ -119,17 +128,74 @@ export async function POST(req: NextRequest) {
     const ogCount = extractOgCount(html);
     const hasSuccessCases = checkSuccessCases(html);
     const specializedSite = checkSpecializedSite(html, domain);
+    const seoResult = calcSeoScore(html, llmsLength > 0, jsonLdTypes.length > 0, hasFaqPage, sitemapCount > 0, robotsExists);
 
     const items = [
-      { key: 'llmsTxt', label: 'llms.txt 파일', desc: llmsLength > 0 ? `llms.txt 존재 (${llmsLength}자)` : 'llms.txt 없음 (404)', pass: llmsLength > 0, point: 20 },
-      { key: 'jsonLd', label: 'JSON-LD 구조화 데이터', desc: jsonLdTypes.length > 0 ? `JSON-LD ${jsonLdTypes.length}개 (${jsonLdTypes.slice(0, 3).join(', ')})` : 'JSON-LD 없음', pass: jsonLdTypes.length > 0, point: 20 },
-      { key: 'faqPage', label: 'FAQPage 스키마', desc: hasFaqPage ? 'FAQPage 적용됨' : 'FAQPage 없음', pass: hasFaqPage, point: 15 },
-      { key: 'successCases', label: '성공사례 독립 URL', desc: hasSuccessCases ? '성공사례 페이지 있음' : '없음', pass: hasSuccessCases, point: 15 },
-      { key: 'sitemap', label: 'sitemap.xml 등록', desc: sitemapCount > 0 ? `sitemap 존재 (${sitemapCount}개)` : 'sitemap 없음', pass: sitemapCount > 0, point: 10 },
-      { key: 'robotsTxt', label: 'robots.txt 설정', desc: robotsExists ? 'robots.txt 정상' : '없음', pass: robotsExists, point: 5 },
-      { key: 'pageSpeed', label: '페이지 SEO 점수', desc: '분석 중...', pass: false, point: 8 },
-      { key: 'ogTags', label: 'Open Graph 메타태그', desc: ogCount >= 2 ? '있음' : '없음', pass: ogCount >= 2, point: 4 },
-      { key: 'specializedSite', label: '전문영역 독립 사이트', desc: specializedSite.desc, pass: specializedSite.pass, point: 3 },
+      {
+        key: 'llmsTxt',
+        label: 'llms.txt 파일',
+        desc: llmsLength > 0 ? `llms.txt 존재 (${llmsLength}자)` : 'llms.txt 없음 (404)',
+        pass: llmsLength > 0,
+        point: 20,
+      },
+      {
+        key: 'jsonLd',
+        label: 'JSON-LD 구조화 데이터',
+        desc: jsonLdTypes.length > 0
+          ? `JSON-LD ${jsonLdTypes.length}개 (${jsonLdTypes.slice(0, 3).join(', ')})`
+          : 'JSON-LD 없음',
+        pass: jsonLdTypes.length > 0,
+        point: 20,
+      },
+      {
+        key: 'faqPage',
+        label: 'FAQPage 스키마',
+        desc: hasFaqPage ? 'FAQPage 적용됨' : 'FAQPage 없음',
+        pass: hasFaqPage,
+        point: 15,
+      },
+      {
+        key: 'successCases',
+        label: '성공사례 독립 URL',
+        desc: hasSuccessCases ? '성공사례 페이지 있음' : '없음',
+        pass: hasSuccessCases,
+        point: 15,
+      },
+      {
+        key: 'sitemap',
+        label: 'sitemap.xml 등록',
+        desc: sitemapCount > 0 ? `sitemap 존재 (${sitemapCount}개)` : 'sitemap 없음',
+        pass: sitemapCount > 0,
+        point: 10,
+      },
+      {
+        key: 'robotsTxt',
+        label: 'robots.txt 설정',
+        desc: robotsExists ? 'robots.txt 정상' : '없음',
+        pass: robotsExists,
+        point: 5,
+      },
+      {
+        key: 'pageSpeed',
+        label: '페이지 SEO 점수',
+        desc: seoResult.desc,
+        pass: seoResult.score >= 70,
+        point: seoResult.score >= 70 ? 8 : 0,
+      },
+      {
+        key: 'ogTags',
+        label: 'Open Graph 메타태그',
+        desc: ogCount >= 2 ? `OG ${ogCount}/3` : `OG ${ogCount}/3`,
+        pass: ogCount >= 2,
+        point: 4,
+      },
+      {
+        key: 'specializedSite',
+        label: '전문영역 독립 사이트',
+        desc: specializedSite.desc,
+        pass: specializedSite.pass,
+        point: 3,
+      },
     ];
 
     const totalScore = items.reduce((acc, item) => acc + (item.pass ? item.point : 0), 0);

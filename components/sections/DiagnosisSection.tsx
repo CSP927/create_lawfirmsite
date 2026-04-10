@@ -17,7 +17,7 @@ type DiagnosisResult = {
   domain: string;
 };
 
-function ScoreCircle({ score, domain, loading }: { score: number; domain: string; loading?: boolean }) {
+function ScoreCircle({ score, domain }: { score: number; domain: string }) {
   const color = score >= 80 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
   const label = score >= 80 ? '✅ 양호' : score >= 50 ? '⚠️ 보통' : '✖ 위험';
   const desc =
@@ -38,31 +38,19 @@ function ScoreCircle({ score, domain, loading }: { score: number; domain: string
           <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" strokeWidth="3" />
           <circle
             cx="18" cy="18" r="15.9" fill="none"
-            stroke={loading ? '#d1d5db' : color} strokeWidth="3"
+            stroke={color} strokeWidth="3"
             strokeDasharray={`${circumference}`}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {loading ? (
-            <span className="text-sm text-gray-400">측정 중</span>
-          ) : (
-            <>
-              <span className="text-2xl font-bold text-gray-900">{score}</span>
-              <span className="text-xs text-gray-400">/ 100</span>
-            </>
-          )}
+          <span className="text-2xl font-bold text-gray-900">{score}</span>
+          <span className="text-xs text-gray-400">/ 100</span>
         </div>
       </div>
-      {!loading && (
-        <>
-          <p className="font-bold text-lg mb-1" style={{ color }}>{label}</p>
-          <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-        </>
-      )}
-      {loading && <p className="text-sm text-gray-400">PageSpeed 점수 측정 중...</p>}
+      <p className="font-bold text-lg mb-1" style={{ color }}>{label}</p>
+      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -70,9 +58,7 @@ function ScoreCircle({ score, domain, loading }: { score: number; domain: string
 export default function DiagnosisSection() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pageSpeedLoading, setPageSpeedLoading] = useState(false);
   const [result, setResult] = useState<DiagnosisResult | null>(null);
-  const [totalScore, setTotalScore] = useState(0);
   const [error, setError] = useState('');
 
   const handleDiagnose = async () => {
@@ -80,10 +66,8 @@ export default function DiagnosisSection() {
     setError('');
     setLoading(true);
     setResult(null);
-    setTotalScore(0);
 
     try {
-      // 1단계: 빠른 분석 (3~5초)
       const res = await fetch('/api/diagnosis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,41 +76,14 @@ export default function DiagnosisSection() {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setResult(data);
-      setTotalScore(data.totalScore);
-      setLoading(false);
-
-      // 2단계: PageSpeed 비동기 로딩
-      setPageSpeedLoading(true);
-      const psRes = await fetch('/api/diagnosis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, withPageSpeed: true }),
-      });
-      const psData = await psRes.json();
-      const seoScore = psData.seoScore || 0;
-      const pass = seoScore >= 80;
-
-      setResult((prev) => {
-        if (!prev) return prev;
-        const updatedItems = prev.items.map((item) =>
-          item.key === 'pageSpeed'
-            ? { ...item, desc: `PageSpeed SEO ${seoScore}점`, pass, point: pass ? 8 : Math.round(seoScore / 10) }
-            : item
-        );
-        const newTotal = updatedItems.reduce((a, i) => a + (i.pass ? i.point : 0), 0);
-        setTotalScore(newTotal);
-        return { ...prev, items: updatedItems };
-      });
     } catch (e: any) {
       setError(e.message || '분석 중 오류가 발생했습니다.');
-      setLoading(false);
     } finally {
-      setPageSpeedLoading(false);
+      setLoading(false);
     }
   };
 
-  const failItems = result?.items.filter((i) => !i.pass && i.key !== 'pageSpeed') ?? [];
-  const pageSpeedItem = result?.items.find((i) => i.key === 'pageSpeed');
+  const failItems = result?.items.filter((i) => !i.pass) ?? [];
 
   return (
     <section className="py-16 px-4 bg-gray-50">
@@ -174,22 +131,14 @@ export default function DiagnosisSection() {
                   <div
                     key={item.key}
                     className={`flex items-center justify-between p-4 rounded-xl border ${
-                      item.key === 'pageSpeed' && pageSpeedLoading
-                        ? 'bg-gray-50 border-gray-100'
-                        : item.pass
-                        ? 'bg-green-50 border-green-100'
-                        : 'bg-red-50 border-red-100'
+                      item.pass ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
-                        item.key === 'pageSpeed' && pageSpeedLoading
-                          ? 'bg-gray-200 text-gray-400'
-                          : item.pass
-                          ? 'bg-green-500 text-white'
-                          : 'bg-red-100 text-red-500 border border-red-300'
+                        item.pass ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500 border border-red-300'
                       }`}>
-                        {item.key === 'pageSpeed' && pageSpeedLoading ? '···' : item.pass ? '✓' : '✗'}
+                        {item.pass ? '✓' : '✗'}
                       </span>
                       <div>
                         <p className="text-sm font-medium text-gray-900">{item.label}</p>
@@ -197,13 +146,9 @@ export default function DiagnosisSection() {
                       </div>
                     </div>
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ml-2 ${
-                      item.key === 'pageSpeed' && pageSpeedLoading
-                        ? 'bg-gray-100 text-gray-400'
-                        : item.pass
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-600'
+                      item.pass ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                     }`}>
-                      {item.key === 'pageSpeed' && pageSpeedLoading ? '측정 중' : item.pass ? `+${item.point}점` : '미적용'}
+                      {item.pass ? `+${item.point}점` : '미적용'}
                     </span>
                   </div>
                 ))}
@@ -212,14 +157,13 @@ export default function DiagnosisSection() {
 
             <div className="space-y-5">
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <ScoreCircle score={totalScore} domain={result.domain} loading={pageSpeedLoading} />
+                <ScoreCircle score={result.totalScore} domain={result.domain} />
               </div>
 
               {failItems.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6">
                   <p className="text-sm font-bold text-gray-800 mb-4">
                     개선 시 획득 가능 점수: +{failItems.reduce((a, i) => a + i.point, 0)}점
-                    {pageSpeedItem && !pageSpeedItem.pass && !pageSpeedLoading ? ` (+${pageSpeedItem.point}점 포함)` : ''}
                   </p>
                   <ul className="space-y-2 mb-5">
                     {failItems.map((item) => (
@@ -241,7 +185,7 @@ export default function DiagnosisSection() {
                 </div>
               )}
 
-              {failItems.length === 0 && !pageSpeedLoading && (
+              {failItems.length === 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
                   <p className="text-green-600 font-bold mb-2">🎉 모든 항목 통과!</p>
                   <p className="text-sm text-gray-500">AI 검색 최적화가 잘 되어 있습니다.</p>
