@@ -12,6 +12,11 @@ type Inquiry = {
   message: string;
 };
 
+// ✅ 전화번호 안전 처리 함수
+function getCleanPhone(phone: any) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
 export default function AdminDashboard() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,26 +86,43 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {inquiries.map((item, i) => (
-                    <tr key={i} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{item.date}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
-                      <td className="px-4 py-3 text-gray-700">
-                        <a href={`tel:${item.phone.replace(/-/g, '')}`} className="text-blue-600 hover:underline">
-                          {item.phone}
-                        </a>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{item.office || '-'}</td>
-                      <td className="px-4 py-3">
-                        {item.interest ? (
-                          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-xs font-medium">
-                            {item.interest}
-                          </span>
-                        ) : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{item.message || '-'}</td>
-                    </tr>
-                  ))}
+                  {inquiries.map((item, i) => {
+                    const cleanPhone = getCleanPhone(item.phone);
+
+                    return (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{item.date}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
+
+                        <td className="px-4 py-3 text-gray-700">
+                          {cleanPhone ? (
+                            <a
+                              href={`tel:${cleanPhone}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {item.phone}
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">번호 없음</span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3 text-gray-700">{item.office || '-'}</td>
+
+                        <td className="px-4 py-3">
+                          {item.interest ? (
+                            <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                              {item.interest}
+                            </span>
+                          ) : '-'}
+                        </td>
+
+                        <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
+                          {item.message || '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
