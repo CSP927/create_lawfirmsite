@@ -82,6 +82,14 @@ export default function Header() {
             >
               {SITE.phone}
             </a>
+            <a
+              href={SITE.kakaoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              💬 카카오
+            </a>
             <Link
               href="/contact"
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -160,6 +168,14 @@ export default function Header() {
               className="flex items-center justify-center gap-2 w-full py-3 border-2 border-blue-600 text-blue-600 font-bold rounded-lg text-sm"
             >
               📞 {SITE.phone}
+            </a>
+            <a
+              href={SITE.kakaoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full py-3 bg-yellow-400 text-gray-900 font-bold rounded-lg text-sm"
+            >
+              💬 카카오 상담
             </a>
             <Link
               href="/contact"

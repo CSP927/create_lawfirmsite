@@ -94,6 +94,14 @@ export default function HomePage() {
             >
               📞 {SITE.phone}
             </a>
+            <a
+              href={SITE.kakaoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-yellow-400 text-gray-900 font-bold px-8 py-3.5 rounded-lg hover:bg-yellow-300 transition-colors"
+            >
+              💬 카카오 상담
+            </a>
           </div>
         </div>
       </section>
@@ -235,6 +243,26 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      {/* ── 모바일 하단 고정 CTA ─────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200 flex">
+        <a
+          href={SITE.phoneHref}
+          className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white font-bold text-sm"
+        >
+          📞 전화 상담
+        </a>
+        <a
+          href={SITE.kakaoHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-yellow-400 text-gray-900 font-bold text-sm"
+        >
+          💬 카카오 상담
+        </a>
+      </div>
+
+      {/* 모바일 하단 버튼 여백 */}
+      <div className="h-14 md:hidden" />
     </>
   );
 }
