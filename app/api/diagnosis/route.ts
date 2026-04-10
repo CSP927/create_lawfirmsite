@@ -11,6 +11,8 @@ const DOMAIN_BLOCKLIST = [
   'doubleclick', 'adsense', 'analytics', 'wix', 'squarespace',
   'go.kr', 'or.kr', 'ac.kr', 'ne.kr', 'lawmaking.go.kr',
   'scourt.go.kr', 'moleg.go.kr', 'law.go.kr', 'supreme.court',
+  'mycafe24.com', 'cafe24.com', 'imweb.me', 'modoo.at', 'sixshop.com',
+  'godaddy.com', 'hosting.kr', 'gabia.com', 'whaledesign',
 ];
 
 // www.sowise.co.kr → sowise.co.kr / www.daeryunlaw.com → daeryunlaw.com
@@ -112,12 +114,30 @@ export async function POST(req: NextRequest) {
     const urlObj = new URL(baseUrl);
     const domain = urlObj.hostname;
 
-    const [html, llmsContent, sitemapContent, robotsExists] = await Promise.all([
+    const [html, llmsContent, robotsContent] = await Promise.all([
       fetchHtml(baseUrl),
       fetch(`${urlObj.origin}/llms.txt`, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => ''),
-      fetch(`${urlObj.origin}/sitemap.xml`, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => ''),
-      checkUrl(`${urlObj.origin}/robots.txt`),
+      fetch(`${urlObj.origin}/robots.txt`, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => ''),
     ]);
+
+    const robotsExists = robotsContent.length > 0;
+
+    // robots.txt에서 sitemap URL 추출 후 체크
+    const sitemapUrls: string[] = [];
+    const robotsSitemapMatches = robotsContent.match(/Sitemap:\s*(.+)/gi) || [];
+    robotsSitemapMatches.forEach((line) => {
+      const u = line.replace(/Sitemap:\s*/i, '').trim();
+      if (u.startsWith('http')) sitemapUrls.push(u);
+    });
+    if (sitemapUrls.length === 0) sitemapUrls.push(`${urlObj.origin}/sitemap.xml`);
+
+    // 모든 sitemap URL 체크
+    const sitemapContents = await Promise.all(
+      sitemapUrls.map((u) =>
+        fetch(u, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => '')
+      )
+    );
+    const sitemapContent = sitemapContents.join('');
 
     const llmsLength = llmsContent.length;
     const jsonLdTypes = extractJsonLdTypes(html);
