@@ -9,6 +9,8 @@ const DOMAIN_BLOCKLIST = [
   'schema.org', 'w3.org', 'xmlsoap.org', 'microsoft', 'apple',
   'icloud', 'akamai', 'fastly', 'vercel', 'netlify', 'github',
   'doubleclick', 'adsense', 'analytics', 'wix', 'squarespace',
+  'go.kr', 'or.kr', 'ac.kr', 'ne.kr', 'lawmaking.go.kr',
+  'scourt.go.kr', 'moleg.go.kr', 'law.go.kr', 'supreme.court',
 ];
 
 // www.sowise.co.kr → sowise.co.kr / www.daeryunlaw.com → daeryunlaw.com
