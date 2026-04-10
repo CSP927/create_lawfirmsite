@@ -39,7 +39,7 @@ async function fetchPageSpeedSeo(url: string): Promise<number> {
   }
 }
 
-function extractLlmsInfo(content: string): { exists: boolean; length: number } {
+function extractLlmsInfo(content: string) {
   return { exists: content.length > 0, length: content.length };
 }
 
@@ -62,8 +62,7 @@ function extractOgCount(html: string): number {
   return count;
 }
 
-function checkSuccessCases(html: string, baseUrl: string): boolean {
-  // /cases/, /success/, /사례, /성공 등 패턴 체크
+function checkSuccessCases(html: string): boolean {
   return (
     html.includes('/cases/') ||
     html.includes('/success-cases/') ||
@@ -73,11 +72,20 @@ function checkSuccessCases(html: string, baseUrl: string): boolean {
 }
 
 function checkSpecializedSite(html: string, domain: string): { pass: boolean; desc: string } {
-  // 다른 도메인 링크가 있는지 체크
+  // www 제거한 루트 도메인 (예: www.daeryunlaw.com → daeryunlaw.com)
+  const rootDomain = domain.replace(/^www\./, '');
+  const blocklist = ['google', 'kakao', 'youtube', 'naver', 'facebook', 'instagram', 'twitter', 'tistory', 'pf.kakao'];
+
   const linkMatches = html.match(/href="https?:\/\/([^"\/]+)/g) || [];
   const externalDomains = linkMatches
-    .map((m) => m.replace(/href="https?:\/\//, '').split('/')[0])
-    .filter((d) => d && !d.includes(domain) && !d.includes('google') && !d.includes('kakao') && !d.includes('youtube') && !d.includes('naver') && !d.includes('facebook') && !d.includes('instagram') && d.includes('.'));
+    .map((m) => m.replace(/href="https?:\/\//, '').split('/')[0].toLowerCase())
+    .filter((d) => {
+      if (!d || !d.includes('.')) return false;
+      if (d.includes(rootDomain)) return false;
+      if (blocklist.some((b) => d.includes(b))) return false;
+      return true;
+    });
+
   const unique = [...new Set(externalDomains)];
   if (unique.length > 0) {
     return { pass: true, desc: `독립 도메인: ${unique[0]}` };
@@ -107,7 +115,7 @@ export async function POST(req: NextRequest) {
     const hasFaqPage = html.includes('FAQPage');
     const sitemapCount = extractSitemapCount(sitemapContent);
     const ogCount = extractOgCount(html);
-    const hasSuccessCases = checkSuccessCases(html, baseUrl);
+    const hasSuccessCases = checkSuccessCases(html);
     const specializedSite = checkSpecializedSite(html, domain);
 
     const items = [
@@ -156,7 +164,7 @@ export async function POST(req: NextRequest) {
         point: 5,
       },
       {
-        key: 'seoScore',
+        key: 'pageSpeed',
         label: '페이지 로딩 속도',
         desc: `OG ${ogCount}/3`,
         pass: seoScore >= 80,
