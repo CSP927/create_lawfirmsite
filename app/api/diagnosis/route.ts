@@ -5,13 +5,16 @@ const DOMAIN_BLOCKLIST = [
   'facebook', 'instagram', 'twitter', 'tistory', 'adobe', 'jquery',
   'cloudflare', 'cdn', 'amazonaws', 'unpkg', 'jsdelivr', 'wp.com',
   'pstatic', 'daumcdn', 'kakaocdn', 'bootstrapcdn', 'fontawesome',
-  'typekit', 'fonts.com', 'gravatar', 'wp-includes',
-  'gmpg.org', 'ogp.me', 'schema.org', 'w3.org', 'xmlsoap.org',
-  'microsoft', 'apple', 'icloud', 'akamai', 'fastly', 'vercel',
-  'netlify', 'github', 'bitbucket', 'gitlab', 'notion', 'slack',
-  'wix', 'squarespace', 'shopify', 'wordpress', 'drupal',
-  'doubleclick', 'adsense', 'adsbygoogle', 'analytics',
+  'typekit', 'fonts.com', 'gravatar', 'gmpg.org', 'ogp.me',
+  'schema.org', 'w3.org', 'xmlsoap.org', 'microsoft', 'apple',
+  'icloud', 'akamai', 'fastly', 'vercel', 'netlify', 'github',
+  'doubleclick', 'adsense', 'analytics', 'wix', 'squarespace',
 ];
+
+// www.sowise.co.kr → sowise.co.kr / www.daeryunlaw.com → daeryunlaw.com
+function getRootDomain(domain: string): string {
+  return domain.replace(/^www\./, '');
+}
 
 async function fetchHtml(url: string): Promise<string> {
   try {
@@ -31,6 +34,7 @@ async function checkUrl(url: string): Promise<boolean> {
     const res = await fetch(url, {
       method: 'HEAD',
       signal: AbortSignal.timeout(4000),
+      redirect: 'follow',
       headers: { 'User-Agent': 'Mozilla/5.0' },
     });
     return res.ok;
@@ -67,13 +71,13 @@ function checkSuccessCases(html: string): boolean {
 }
 
 function checkSpecializedSite(html: string, domain: string): { pass: boolean; desc: string } {
-  const rootDomain = domain.replace(/^www\./, '');
+  const rootDomain = getRootDomain(domain); // www 제거한 도메인
   const linkMatches = html.match(/href="https?:\/\/([^"\/]+)/g) || [];
   const externalDomains = linkMatches
-    .map((m) => m.replace(/href="https?:\/\//, '').split('/')[0].toLowerCase())
+    .map((m) => m.replace(/href="https?:\/\//, '').split('/')[0].toLowerCase().replace(/^www\./, ''))
     .filter((d) => {
       if (!d || !d.includes('.')) return false;
-      if (d.includes(rootDomain)) return false;
+      if (d === rootDomain) return false; // 완전히 동일한 도메인만 제외
       if (DOMAIN_BLOCKLIST.some((b) => d.includes(b))) return false;
       return true;
     });
@@ -83,31 +87,18 @@ function checkSpecializedSite(html: string, domain: string): { pass: boolean; de
     : { pass: false, desc: '없음' };
 }
 
-// PageSpeed API 대신 HTML 직접 분석으로 SEO 점수 산출
-function calcSeoScore(html: string, hasLlms: boolean, hasJsonLd: boolean, hasFaq: boolean, hasSitemap: boolean, hasRobots: boolean): { score: number; desc: string } {
+function calcSeoScore(html: string, hasLlms: boolean, hasJsonLd: boolean, hasSitemap: boolean, hasRobots: boolean): number {
   let score = 0;
-  const checks = [];
-
-  // title 태그
-  if (html.includes('<title>') && !html.includes('<title></title>')) { score += 15; checks.push('title'); }
-  // meta description
-  if (html.includes('name="description"') || html.includes("name='description'")) { score += 15; checks.push('description'); }
-  // canonical
-  if (html.includes('rel="canonical"') || html.includes("rel='canonical'")) { score += 10; checks.push('canonical'); }
-  // OG 태그
-  if (html.includes('og:title')) { score += 10; checks.push('OG'); }
-  // 구조화 데이터
-  if (hasJsonLd) { score += 15; }
-  // llms.txt
-  if (hasLlms) { score += 10; }
-  // sitemap
-  if (hasSitemap) { score += 10; }
-  // robots
-  if (hasRobots) { score += 5; }
-  // viewport (모바일 최적화)
-  if (html.includes('name="viewport"') || html.includes("name='viewport'")) { score += 10; checks.push('viewport'); }
-
-  return { score: Math.min(score, 100), desc: `SEO 분석 ${score}점` };
+  if (html.includes('<title>') && !html.includes('<title></title>')) score += 15;
+  if (html.includes('name="description"') || html.includes("name='description'")) score += 15;
+  if (html.includes('rel="canonical"') || html.includes("rel='canonical'")) score += 10;
+  if (html.includes('og:title')) score += 10;
+  if (hasJsonLd) score += 15;
+  if (hasLlms) score += 10;
+  if (hasSitemap) score += 10;
+  if (hasRobots) score += 5;
+  if (html.includes('name="viewport"') || html.includes("name='viewport'")) score += 10;
+  return Math.min(score, 100);
 }
 
 export async function POST(req: NextRequest) {
@@ -119,11 +110,10 @@ export async function POST(req: NextRequest) {
     const urlObj = new URL(baseUrl);
     const domain = urlObj.hostname;
 
-    // 모든 요청 병렬 처리
     const [html, llmsContent, sitemapContent, robotsExists] = await Promise.all([
       fetchHtml(baseUrl),
-      fetch(`${urlObj.origin}/llms.txt`, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok ? r.text() : '').catch(() => ''),
-      fetch(`${urlObj.origin}/sitemap.xml`, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok ? r.text() : '').catch(() => ''),
+      fetch(`${urlObj.origin}/llms.txt`, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => ''),
+      fetch(`${urlObj.origin}/sitemap.xml`, { signal: AbortSignal.timeout(4000), redirect: 'follow' }).then((r) => r.ok ? r.text() : '').catch(() => ''),
       checkUrl(`${urlObj.origin}/robots.txt`),
     ]);
 
@@ -134,74 +124,18 @@ export async function POST(req: NextRequest) {
     const ogCount = extractOgCount(html);
     const hasSuccessCases = checkSuccessCases(html);
     const specializedSite = checkSpecializedSite(html, domain);
-    const seoResult = calcSeoScore(html, llmsLength > 0, jsonLdTypes.length > 0, hasFaqPage, sitemapCount > 0, robotsExists);
+    const seoScore = calcSeoScore(html, llmsLength > 0, jsonLdTypes.length > 0, sitemapCount > 0, robotsExists);
 
     const items = [
-      {
-        key: 'llmsTxt',
-        label: 'llms.txt 파일',
-        desc: llmsLength > 0 ? `llms.txt 존재 (${llmsLength}자)` : 'llms.txt 없음 (404)',
-        pass: llmsLength > 0,
-        point: 20,
-      },
-      {
-        key: 'jsonLd',
-        label: 'JSON-LD 구조화 데이터',
-        desc: jsonLdTypes.length > 0
-          ? `JSON-LD ${jsonLdTypes.length}개 (${jsonLdTypes.slice(0, 3).join(', ')})`
-          : 'JSON-LD 없음',
-        pass: jsonLdTypes.length > 0,
-        point: 20,
-      },
-      {
-        key: 'faqPage',
-        label: 'FAQPage 스키마',
-        desc: hasFaqPage ? 'FAQPage 적용됨' : 'FAQPage 없음',
-        pass: hasFaqPage,
-        point: 15,
-      },
-      {
-        key: 'successCases',
-        label: '성공사례 독립 URL',
-        desc: hasSuccessCases ? '성공사례 페이지 있음' : '없음',
-        pass: hasSuccessCases,
-        point: 15,
-      },
-      {
-        key: 'sitemap',
-        label: 'sitemap.xml 등록',
-        desc: sitemapCount > 0 ? `sitemap 존재 (${sitemapCount}개)` : 'sitemap 없음',
-        pass: sitemapCount > 0,
-        point: 10,
-      },
-      {
-        key: 'robotsTxt',
-        label: 'robots.txt 설정',
-        desc: robotsExists ? 'robots.txt 정상' : '없음',
-        pass: robotsExists,
-        point: 5,
-      },
-      {
-        key: 'pageSpeed',
-        label: '페이지 SEO 점수',
-        desc: seoResult.desc,
-        pass: seoResult.score >= 70,
-        point: seoResult.score >= 70 ? 8 : 0,
-      },
-      {
-        key: 'ogTags',
-        label: 'Open Graph 메타태그',
-        desc: ogCount >= 2 ? `OG ${ogCount}/3` : `OG ${ogCount}/3`,
-        pass: ogCount >= 2,
-        point: 4,
-      },
-      {
-        key: 'specializedSite',
-        label: '전문영역 독립 사이트',
-        desc: specializedSite.desc,
-        pass: specializedSite.pass,
-        point: 3,
-      },
+      { key: 'llmsTxt', label: 'llms.txt 파일', desc: llmsLength > 0 ? `llms.txt 존재 (${llmsLength}자)` : 'llms.txt 없음 (404)', pass: llmsLength > 0, point: 20 },
+      { key: 'jsonLd', label: 'JSON-LD 구조화 데이터', desc: jsonLdTypes.length > 0 ? `JSON-LD ${jsonLdTypes.length}개 (${jsonLdTypes.slice(0, 3).join(', ')})` : 'JSON-LD 없음', pass: jsonLdTypes.length > 0, point: 20 },
+      { key: 'faqPage', label: 'FAQPage 스키마', desc: hasFaqPage ? 'FAQPage 적용됨' : 'FAQPage 없음', pass: hasFaqPage, point: 15 },
+      { key: 'successCases', label: '성공사례 독립 URL', desc: hasSuccessCases ? '성공사례 페이지 있음' : '없음', pass: hasSuccessCases, point: 15 },
+      { key: 'sitemap', label: 'sitemap.xml 등록', desc: sitemapCount > 0 ? `sitemap 존재 (${sitemapCount}개)` : 'sitemap 없음', pass: sitemapCount > 0, point: 10 },
+      { key: 'robotsTxt', label: 'robots.txt 설정', desc: robotsExists ? 'robots.txt 정상' : '없음', pass: robotsExists, point: 5 },
+      { key: 'pageSpeed', label: '페이지 SEO 점수', desc: `SEO 분석 ${seoScore}점`, pass: seoScore >= 70, point: seoScore >= 70 ? 8 : 0 },
+      { key: 'ogTags', label: 'Open Graph 메타태그', desc: `OG ${ogCount}/3`, pass: ogCount >= 2, point: 4 },
+      { key: 'specializedSite', label: '전문영역 독립 사이트', desc: specializedSite.desc, pass: specializedSite.pass, point: 3 },
     ];
 
     const totalScore = items.reduce((acc, item) => acc + (item.pass ? item.point : 0), 0);
