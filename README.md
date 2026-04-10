@@ -93,7 +93,7 @@ create-lawfirmsite/
 NEXT_PUBLIC_SITE_URL=https://www.create-lawfirmsite.co.kr
 NEXT_PUBLIC_PHONE=010-5886-4776
 NEXT_PUBLIC_PHONE_HREF=tel:01058864776
-NEXT_PUBLIC_KAKAO_HREF=https://pf.kakao.com/_placeholder
+NEXT_PUBLIC_KAKAO_HREF=https://pf.kakao.com/_UcTSb
 
 # GA4 ID 발급 후 입력
 NEXT_PUBLIC_GA4_ID=
@@ -178,5 +178,5 @@ Vercel GitHub 연동 시 push하면 자동 배포됩니다.
 | `NEXT_PUBLIC_SITE_URL` | `https://www.create-lawfirmsite.co.kr` | |
 | `NEXT_PUBLIC_PHONE` | `010-5886-4776` | |
 | `NEXT_PUBLIC_PHONE_HREF` | `tel:01058864776` | |
-| `NEXT_PUBLIC_KAKAO_HREF` | `https://pf.kakao.com/...` | 카카오 채널 발급 후 교체 |
+| `NEXT_PUBLIC_KAKAO_HREF` | `https://pf.kakao.com/_UcTSb` | 카카오 채널 발급 후 교체 |
 | `NEXT_PUBLIC_GA4_ID` | `G-XXXXXXXXXX` | GA4 발급 후 입력 |

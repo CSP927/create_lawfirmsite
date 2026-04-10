@@ -4,19 +4,13 @@ import { SITE } from '@/lib/constants';
 import { getLatestSuccessCases } from '@/data/success-cases';
 import { getGeneralFaqs } from '@/data/faqs';
 import ConsultForm from '@/components/common/ConsultForm';
+import DiagnosisSection from '@/components/sections/DiagnosisSection';
 
 export const metadata: Metadata = {
   title: `${SITE.name} | 법률사무소 AI·SEO 홈페이지 제작 전문`,
   description: SITE.description,
   alternates: { canonical: '/' },
 };
-
-// 홈 고정 성공사례 3개
-const HOME_CASES = [
-  'lawfirm-seo-rank-01',
-  'lawoffice-ai-search-01',
-  'legalcorp-jsonld-01',
-];
 
 const SERVICES_PREVIEW = [
   {
@@ -148,7 +142,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 제작 사례 (고정 3개) ──────────────────────────────── */}
+      {/* ── 제작 사례 ─────────────────────────────────────────── */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-3">
@@ -189,8 +183,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── AI 검색 적합도 무료 진단 ──────────────────────────── */}
+      <DiagnosisSection />
+
       {/* ── FAQ ───────────────────────────────────────────────── */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-white">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-10">
             자주 묻는 질문
