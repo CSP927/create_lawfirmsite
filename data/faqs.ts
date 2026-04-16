@@ -1,5 +1,6 @@
 export type Faq = {
   id: string;
+  slug: string;
   category: string;
   question: string;
   answer: string;
@@ -9,6 +10,7 @@ export const FAQS: Faq[] = [
   // ── 비용·기간 ──────────────────────────────────────────────
   {
     id: 'faq-cost-01',
+    slug: 'website-cost',
     category: 'cost',
     question: '법률사무소 홈페이지 제작 비용은 얼마인가요?',
     answer:
@@ -16,6 +18,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-cost-02',
+    slug: 'production-period',
     category: 'cost',
     question: '제작 기간은 얼마나 걸리나요?',
     answer:
@@ -23,6 +26,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-cost-03',
+    slug: 'maintenance-cost',
     category: 'cost',
     question: '제작 후 유지보수 비용이 따로 있나요?',
     answer:
@@ -30,6 +34,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-cost-04',
+    slug: 'payment-schedule',
     category: 'cost',
     question: '계약금과 잔금 납부 시점은 언제인가요?',
     answer:
@@ -37,6 +42,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-cost-05',
+    slug: 'domain-hosting-cost',
     category: 'cost',
     question: '도메인·호스팅 비용은 별도인가요?',
     answer:
@@ -46,6 +52,7 @@ export const FAQS: Faq[] = [
   // ── AI·SEO ─────────────────────────────────────────────────
   {
     id: 'faq-seo-01',
+    slug: 'ai-seo-difference',
     category: 'ai-seo',
     question: 'AI 검색 최적화가 일반 SEO와 다른 점은 무엇인가요?',
     answer:
@@ -53,6 +60,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-seo-02',
+    slug: 'what-is-llms-txt',
     category: 'ai-seo',
     question: 'llms.txt가 무엇인가요?',
     answer:
@@ -60,6 +68,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-seo-03',
+    slug: 'why-json-ld',
     category: 'ai-seo',
     question: 'JSON-LD 구조화 데이터가 왜 필요한가요?',
     answer:
@@ -67,6 +76,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-seo-04',
+    slug: 'google-ranking-period',
     category: 'ai-seo',
     question: '제작 후 구글 1페이지 진입까지 얼마나 걸리나요?',
     answer:
@@ -74,6 +84,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-seo-05',
+    slug: 'naver-seo',
     category: 'ai-seo',
     question: '네이버 검색 최적화도 함께 해주시나요?',
     answer:
@@ -83,6 +94,7 @@ export const FAQS: Faq[] = [
   // ── 기술·스택 ───────────────────────────────────────────────
   {
     id: 'faq-tech-01',
+    slug: 'tech-stack',
     category: 'tech',
     question: '어떤 기술로 제작하나요?',
     answer:
@@ -90,6 +102,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-tech-02',
+    slug: 'nextjs-vs-wordpress',
     category: 'tech',
     question: 'WordPress나 카페24로 제작하는 것과 차이가 있나요?',
     answer:
@@ -97,6 +110,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-tech-03',
+    slug: 'self-management',
     category: 'tech',
     question: '사이트 수정은 어떻게 하나요? 직접 관리할 수 있나요?',
     answer:
@@ -104,6 +118,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-tech-04',
+    slug: 'ga4-integration',
     category: 'tech',
     question: 'GA4·구글 서치콘솔 연동도 해주시나요?',
     answer:
@@ -111,6 +126,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-tech-05',
+    slug: 'mobile-responsive',
     category: 'tech',
     question: '모바일에서도 잘 보이나요?',
     answer:
@@ -120,6 +136,7 @@ export const FAQS: Faq[] = [
   // ── 콘텐츠 ─────────────────────────────────────────────────
   {
     id: 'faq-content-01',
+    slug: 'success-cases-count',
     category: 'content',
     question: '성공사례는 몇 개부터 시작할 수 있나요?',
     answer:
@@ -127,6 +144,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-content-02',
+    slug: 'faq-count',
     category: 'content',
     question: 'FAQ는 몇 개가 적당한가요?',
     answer:
@@ -134,6 +152,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-content-03',
+    slug: 'photos-required',
     category: 'content',
     question: '사무소 사진이나 변호사 프로필 사진이 없어도 되나요?',
     answer:
@@ -141,6 +160,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-content-04',
+    slug: 'copywriting',
     category: 'content',
     question: '카피·문구 작성도 해주시나요?',
     answer:
@@ -148,6 +168,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-content-05',
+    slug: 'portfolio',
     category: 'content',
     question: '제작 사례나 포트폴리오를 볼 수 있나요?',
     answer:
@@ -157,6 +178,7 @@ export const FAQS: Faq[] = [
   // ── 일반 ────────────────────────────────────────────────────
   {
     id: 'faq-general-01',
+    slug: 'non-lawfirm',
     category: 'general',
     question: '법률사무소가 아니어도 제작 가능한가요?',
     answer:
@@ -164,6 +186,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-general-02',
+    slug: 'remote-meeting',
     category: 'general',
     question: '대면 미팅이 필요한가요?',
     answer:
@@ -171,6 +194,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-general-03',
+    slug: 'renewal',
     category: 'general',
     question: '기존 사이트 리뉴얼도 가능한가요?',
     answer:
@@ -178,6 +202,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-general-04',
+    slug: 'process',
     category: 'general',
     question: '상담부터 납품까지 어떻게 진행되나요?',
     answer:
@@ -185,6 +210,7 @@ export const FAQS: Faq[] = [
   },
   {
     id: 'faq-general-05',
+    slug: 'law-fields',
     category: 'general',
     question: '어떤 법률 분야 사이트를 제작해 봤나요?',
     answer:
@@ -195,6 +221,11 @@ export const FAQS: Faq[] = [
 /** 카테고리별 필터 */
 export function getFaqsByCategory(category: string): Faq[] {
   return FAQS.filter((f) => f.category === category);
+}
+
+/** slug로 단일 조회 */
+export function getFaqBySlug(slug: string): Faq | undefined {
+  return FAQS.find((f) => f.slug === slug);
 }
 
 /** 일반 FAQ (홈·가이드 페이지용) */

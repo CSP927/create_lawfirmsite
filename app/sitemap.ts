@@ -27,5 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.75,
   }));
 
-  return [...staticPages, ...casePages];
+  const faqPages: MetadataRoute.Sitemap = FAQS.map((f) => ({
+    url: `${base}/faq/${f.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...casePages, ...faqPages];
 }
