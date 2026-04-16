@@ -1,7 +1,7 @@
 export const SITE = {
   name: '로이어비즈랩',
   nameEn: 'LawyerBizlab',
-  domain: 'create-lawfirmsite.co.kr',
+  domain: 'https://create-lawfirmsite.vercel.app',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://create-lawfirmsite.vercel.app',
   phone: process.env.NEXT_PUBLIC_PHONE || '010-5886-4776',
   phoneHref: process.env.NEXT_PUBLIC_PHONE_HREF || 'tel:01058864776',
