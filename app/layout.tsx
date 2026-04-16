@@ -27,6 +27,14 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     title: `${SITE.name} | 법률사무소 AI·SEO 홈페이지 제작 전문`,
     description: SITE.description,
+    images: [                          // ← 이것만 추가
+      {
+        url: `${SITE.url}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: `${SITE.name} 썸네일`,
+      },
+    ],
   },
   robots: { index: true, follow: true },
 };
